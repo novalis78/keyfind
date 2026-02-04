@@ -1,0 +1,26 @@
+{
+  "name": "keyfind",
+  "version": "1.0.0",
+  "description": "**Agent Discovery Service for KeyStack**",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/novalis78/keyfind.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/novalis78/keyfind/issues"
+  },
+  "homepage": "https://github.com/novalis78/keyfind#readme",
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "express": "^5.2.1",
+    "uuid": "^13.0.0"
+  }
+}
