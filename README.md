@@ -95,6 +95,19 @@ Suggested cron (on any host running KeyFind):
 */5 * * * * cd /path/to/keyfind && ./scripts/check-health-and-escalate.sh >> ./logs/cron-health.log 2>&1
 ```
 
+Anti-noise safeguards (built in):
+- Quiet hours gate via `QUIET_HOURS` (default `22-07`)
+- Notification cooldown via `COOLDOWN_SEC` (default `1800`)
+
+Example override:
+
+```bash
+QUIET_HOURS=00-00 COOLDOWN_SEC=300 ./scripts/check-health-and-escalate.sh
+```
+
+Who should use this first:
+- Any operator running KeyFind outside this host (e.g., Lennart's deployment target) who needs reproducible health detection + thresholded escalation without local workspace dependencies.
+
 ## Spec
 
 See [SPEC.md](./SPEC.md) for full API design.
