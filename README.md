@@ -79,11 +79,20 @@ curl -i "http://127.0.0.1:3002/health?inject=readonly"
 
 ### Lightweight operator alert hook
 
-Use the workspace probe script to emit OK/ALERT lines into `logs/keyfind-alerts.log`:
+Portable (repo-local) check + escalation script:
 
 ```bash
-/root/clawd/scripts/check-keyfind-health.sh
-/root/clawd/scripts/check-keyfind-health.sh "http://127.0.0.1:3002/health?inject=readonly"
+chmod +x scripts/check-health-and-escalate.sh
+scripts/check-health-and-escalate.sh
+scripts/check-health-and-escalate.sh "http://127.0.0.1:3002/health?inject=readonly"
+```
+
+Artifacts are written to `./logs/alerts.log` and `./logs/escalations.log`.
+
+Suggested cron (on any host running KeyFind):
+
+```bash
+*/5 * * * * cd /path/to/keyfind && ./scripts/check-health-and-escalate.sh >> ./logs/cron-health.log 2>&1
 ```
 
 ## Spec
