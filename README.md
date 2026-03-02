@@ -67,9 +67,9 @@ Expected response:
 
 ### Health endpoint drift signal
 
-`GET /health` now reports DB writability state explicitly:
-- healthy write path: HTTP `200`, `"dbWritable": true`
-- degraded write path: HTTP `503`, `"dbWritable": false`, plus `dbCheck` details
+`GET /health` now reports DB writability and a live write probe explicitly:
+- healthy write path: HTTP `200`, `"dbWritable": true`, `"dbWriteProbe": true`
+- degraded write path: HTTP `503`, with failed `dbCheck` and/or `dbWriteProbeCheck` details
 
 For local runbook testing, you can inject degraded health:
 

@@ -36,6 +36,17 @@ function checkDbWritable() {
   }
 }
 
+function checkDbWriteProbe() {
+  try {
+    // Write-capability probe without persistent mutation
+    db.exec('BEGIN IMMEDIATE; ROLLBACK;');
+    return { ok: true };
+  } catch (err) {
+    try { db.exec('ROLLBACK;'); } catch (_) {}
+    return { ok: false, code: err.code || 'DB_WRITE_PROBE_FAILED', message: err.message };
+  }
+}
+
 // Create tables
 db.exec(`
   CREATE TABLE IF NOT EXISTS agents (
@@ -103,15 +114,18 @@ app.get('/health', (req, res) => {
   try {
     const stats = db.prepare('SELECT COUNT(*) as count FROM agents').get();
     let writable = checkDbWritable();
+    let writeProbe = checkDbWriteProbe();
 
     // Local-only health degradation injection for operator alert testing
     const isLocal = req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1';
     if (isLocal && req.query.inject === 'readonly') {
       writable = { ok: false, code: 'DB_NOT_WRITABLE_INJECTED', message: 'Injected readonly health state for runbook validation' };
+      writeProbe = { ok: false, code: 'DB_WRITE_PROBE_INJECTED', message: 'Injected write-probe failure for runbook validation' };
     }
 
-    const status = writable.ok ? 'healthy' : 'degraded';
-    res.status(writable.ok ? 200 : 503).json({
+    const healthy = writable.ok && writeProbe.ok;
+    const status = healthy ? 'healthy' : 'degraded';
+    res.status(healthy ? 200 : 503).json({
       status,
       service: 'KeyFind',
       version: '0.1.0',
@@ -119,6 +133,8 @@ app.get('/health', (req, res) => {
       agents: stats.count,
       dbWritable: writable.ok,
       dbCheck: writable,
+      dbWriteProbe: writeProbe.ok,
+      dbWriteProbeCheck: writeProbe,
       timestamp: new Date().toISOString()
     });
   } catch (err) {
