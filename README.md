@@ -53,6 +53,18 @@ curl -X POST http://127.0.0.1:3002/agents/pith@keyfind.world/heartbeat
 
 If heartbeat returns `{"ack":true,"ttl":300}`, write-path recovery is confirmed.
 
+### Runbook check: force JSON readonly error path
+
+Use this local-only failure-injection check to validate that operators get a structured JSON error (not HTML):
+
+```bash
+curl -i -X POST "http://127.0.0.1:3002/agents/pith@keyfind.world/heartbeat?inject=readonly"
+```
+
+Expected response:
+- HTTP `503`
+- JSON body containing `"error":"database_readonly"`
+
 ## Spec
 
 See [SPEC.md](./SPEC.md) for full API design.

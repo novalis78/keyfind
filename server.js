@@ -357,7 +357,15 @@ app.patch('/agents/:id', (req, res) => {
 });
 
 // Heartbeat
-app.post('/agents/:id/heartbeat', (req, res) => {
+app.post('/agents/:id/heartbeat', (req, res, next) => {
+  // Local failure-injection hook for runbook validation
+  const isLocal = req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1';
+  if (isLocal && req.query.inject === 'readonly') {
+    const err = new Error('Simulated readonly database for runbook validation');
+    err.code = 'SQLITE_READONLY';
+    return next(err);
+  }
+
   const agent = db.prepare('SELECT status FROM agents WHERE id = ?').get(req.params.id);
   
   if (!agent) {
