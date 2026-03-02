@@ -27,6 +27,8 @@ mkdir -p logs state
 ```
 Expected: one `NOTIFY`, then `SUPPRESS` (cooldown), with entries in `logs/escalations.log`.
 
+Note: monitoring alerts key off **write readiness** (`dbWriteProbe`) in addition to `status` and `dbWritable`.
+
 ## Defaults you can override
 - `WINDOW_MIN=10`
 - `THRESHOLD=2`

@@ -38,11 +38,12 @@ in_quiet_hours() {
 payload="$(curl -sS "$HEALTH_URL")"
 status="$(printf '%s' "$payload" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("status","unknown"))')"
 dbw="$(printf '%s' "$payload" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("dbWritable","unknown"))')"
+write_probe="$(printf '%s' "$payload" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("dbWriteProbe","unknown"))')"
 
-if [[ "$status" != "healthy" || "$dbw" != "True" ]]; then
-  echo "[$STAMP] ALERT keyfind_health status=$status dbWritable=$dbw url=$HEALTH_URL payload=$payload" | tee -a "$ALERT_LOG"
+if [[ "$status" != "healthy" || "$dbw" != "True" || "$write_probe" != "True" ]]; then
+  echo "[$STAMP] ALERT keyfind_health status=$status dbWritable=$dbw dbWriteProbe=$write_probe url=$HEALTH_URL payload=$payload" | tee -a "$ALERT_LOG"
 else
-  echo "[$STAMP] OK keyfind_health status=$status dbWritable=$dbw url=$HEALTH_URL" | tee -a "$ALERT_LOG"
+  echo "[$STAMP] OK keyfind_health status=$status dbWritable=$dbw dbWriteProbe=$write_probe url=$HEALTH_URL" | tee -a "$ALERT_LOG"
 fi
 
 count=0
