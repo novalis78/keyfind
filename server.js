@@ -475,6 +475,28 @@ app.get('/agents/:id/badge', (req, res) => {
   res.send(svg);
 });
 
+// Structured JSON error responses (avoid generic HTML 500 pages)
+app.use((err, req, res, next) => {
+  console.error(err);
+
+  const code = err?.code || 'INTERNAL_ERROR';
+  const message = err?.message || 'Internal Server Error';
+  const isReadonly = code === 'SQLITE_READONLY' || /readonly database/i.test(message);
+
+  if (isReadonly) {
+    return res.status(503).json({
+      error: 'database_readonly',
+      message: 'KeyFind database is currently read-only',
+      hint: 'Restart service and verify filesystem write access'
+    });
+  }
+
+  return res.status(500).json({
+    error: code,
+    message
+  });
+});
+
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
   console.log(`🔍 KeyFind running on port ${PORT}`);
