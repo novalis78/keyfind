@@ -65,6 +65,12 @@ Expected response:
 - HTTP `503`
 - JSON body containing `"error":"database_readonly"`
 
+### Health endpoint drift signal
+
+`GET /health` now reports DB writability state explicitly:
+- healthy write path: HTTP `200`, `"dbWritable": true`
+- degraded write path: HTTP `503`, `"dbWritable": false`, plus `dbCheck` details
+
 ## Spec
 
 See [SPEC.md](./SPEC.md) for full API design.

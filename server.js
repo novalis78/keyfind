@@ -7,6 +7,7 @@ const express = require('express');
 const Database = require('better-sqlite3');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 app.use(express.json());
@@ -23,7 +24,17 @@ app.use((req, res, next) => {
 });
 
 // Initialize SQLite database
-const db = new Database(path.join(__dirname, 'keyfind.db'));
+const DB_PATH = path.join(__dirname, 'keyfind.db');
+const db = new Database(DB_PATH);
+
+function checkDbWritable() {
+  try {
+    fs.accessSync(DB_PATH, fs.constants.W_OK);
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, code: 'DB_NOT_WRITABLE', message: err.message };
+  }
+}
 
 // Create tables
 db.exec(`
@@ -91,12 +102,16 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
   try {
     const stats = db.prepare('SELECT COUNT(*) as count FROM agents').get();
-    res.json({
-      status: 'healthy',
+    const writable = checkDbWritable();
+    const status = writable.ok ? 'healthy' : 'degraded';
+    res.status(writable.ok ? 200 : 503).json({
+      status,
       service: 'KeyFind',
       version: '0.1.0',
       uptime: process.uptime(),
       agents: stats.count,
+      dbWritable: writable.ok,
+      dbCheck: writable,
       timestamp: new Date().toISOString()
     });
   } catch (err) {
@@ -507,6 +522,10 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
+  const writable = checkDbWritable();
   console.log(`🔍 KeyFind running on port ${PORT}`);
   console.log(`   Agent discovery service by Pith`);
+  if (!writable.ok) {
+    console.warn(`⚠️  DB writability check failed at startup: ${writable.message}`);
+  }
 });
