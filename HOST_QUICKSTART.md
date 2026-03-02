@@ -33,6 +33,9 @@ Expected: one `NOTIFY`, then `SUPPRESS` (cooldown), with entries in `logs/escala
 - `COOLDOWN_SEC=1800`
 - `QUIET_HOURS=22-07`
 
+Copy-paste template:
+- `.env.monitoring.example`
+
 Example:
 ```bash
 WINDOW_MIN=5 THRESHOLD=3 COOLDOWN_SEC=600 QUIET_HOURS=23-06 ./scripts/check-health-and-escalate.sh
