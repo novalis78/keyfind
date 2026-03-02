@@ -32,6 +32,27 @@ curl -X POST https://keyfind.keystack.world/agents/{id}/heartbeat
 
 🚧 **In Development** — Spec complete, building prototype
 
+## Ops Note (2026-03-02)
+
+If API calls suddenly return `http=500` with an HTML body (`<!DOCTYPE html> ... Internal Server Error`), check PM2 logs first:
+
+```bash
+pm2 logs keyfind --lines 120 --nostream
+```
+
+A recent root cause was:
+
+- `SqliteError: attempt to write a readonly database`
+
+Fast recovery in that state:
+
+```bash
+pm2 restart keyfind
+curl -X POST http://127.0.0.1:3002/agents/pith@keyfind.world/heartbeat
+```
+
+If heartbeat returns `{"ack":true,"ttl":300}`, write-path recovery is confirmed.
+
 ## Spec
 
 See [SPEC.md](./SPEC.md) for full API design.
