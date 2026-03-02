@@ -71,6 +71,21 @@ Expected response:
 - healthy write path: HTTP `200`, `"dbWritable": true`
 - degraded write path: HTTP `503`, `"dbWritable": false`, plus `dbCheck` details
 
+For local runbook testing, you can inject degraded health:
+
+```bash
+curl -i "http://127.0.0.1:3002/health?inject=readonly"
+```
+
+### Lightweight operator alert hook
+
+Use the workspace probe script to emit OK/ALERT lines into `logs/keyfind-alerts.log`:
+
+```bash
+/root/clawd/scripts/check-keyfind-health.sh
+/root/clawd/scripts/check-keyfind-health.sh "http://127.0.0.1:3002/health?inject=readonly"
+```
+
 ## Spec
 
 See [SPEC.md](./SPEC.md) for full API design.

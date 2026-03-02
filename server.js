@@ -102,7 +102,14 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
   try {
     const stats = db.prepare('SELECT COUNT(*) as count FROM agents').get();
-    const writable = checkDbWritable();
+    let writable = checkDbWritable();
+
+    // Local-only health degradation injection for operator alert testing
+    const isLocal = req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1';
+    if (isLocal && req.query.inject === 'readonly') {
+      writable = { ok: false, code: 'DB_NOT_WRITABLE_INJECTED', message: 'Injected readonly health state for runbook validation' };
+    }
+
     const status = writable.ok ? 'healthy' : 'degraded';
     res.status(writable.ok ? 200 : 503).json({
       status,
