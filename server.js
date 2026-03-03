@@ -38,8 +38,19 @@ function checkDbWritable() {
 
 function checkDbWriteProbe() {
   try {
-    // Write-capability probe without persistent mutation
-    db.exec('BEGIN IMMEDIATE; ROLLBACK;');
+    // Write-capability probe without persistent mutation:
+    // emulate heartbeat-style write semantics (UPDATE + INSERT) inside a rollback.
+    db.exec('BEGIN IMMEDIATE;');
+    const row = db.prepare('SELECT id FROM agents LIMIT 1').get();
+    if (row && row.id) {
+      db.prepare("UPDATE agents SET last_seen = datetime('now') WHERE id = ?").run(row.id);
+      db.prepare('INSERT INTO activity (agent_id, event, details) VALUES (?, ?, ?)').run(
+        row.id,
+        'write-probe',
+        null
+      );
+    }
+    db.exec('ROLLBACK;');
     return { ok: true };
   } catch (err) {
     try { db.exec('ROLLBACK;'); } catch (_) {}
