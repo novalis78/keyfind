@@ -2,3 +2,7 @@ node_modules/
 .env
 .DS_Store
 *.log
+
+# Runtime/local state
+keyfind.db
+keyfind.db.bak.*
